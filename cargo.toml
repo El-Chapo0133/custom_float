@@ -1,0 +1,11 @@
+[package]
+name = "custom_float"
+version = "0.0.1"
+authors = ["El-Chapo0133 <levequeloris66@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+
+[[bin]]
+name = "custom_float"
+path = "custom_float.rs"

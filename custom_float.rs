@@ -24,7 +24,7 @@ impl CustomFloat {
         fn add(&mut self, input: f64) {
                 let input_normalised: Vec<u8> = normalise(input);
 
-                let (init_data, input_data) = move_komma(self.data.clone(), input_normalised);
+                let (init_data, input_data) = move_comma(self.data.clone(), input_normalised);
                 
                 if self.negative {
                         self.negative = will_be_negative_add(&init_data, &input_data);
@@ -34,7 +34,7 @@ impl CustomFloat {
         }
         fn substract(&mut self, input: f64) {
                 let input_normalised: Vec<u8> = normalise(input);
-                let (init_data, input_data) = move_komma(self.data.clone(), input_normalised);
+                let (init_data, input_data) = move_comma(self.data.clone(), input_normalised);
                 
                 self.negative = will_be_negative_substract(&init_data, &input_data);
                 
@@ -121,9 +121,6 @@ fn handle_substract(mut init_data: Vec<u8>, input_data: Vec<u8>) -> Vec<u8> {
                         data_to_return[real_index as usize] = 10;
                         continue; // komma
                 }
-
-
-
 
                 if can_substract(number_from_data as i32, number_from_input as i32) {
                         data_to_return[real_index as usize] = number_from_data - number_from_input;
@@ -223,7 +220,7 @@ fn remove_non_necessary(input: &mut String) {
                 return;
         }
         remove_starting_zeros(input);
-        remove_last_komma(input);
+        remove_last_comma(input);
 }
 
 fn remove_ending_zeros(input: &mut String) {
@@ -247,7 +244,7 @@ fn remove_starting_zeros(input: &mut String) {
                 }
         }
 }
-fn remove_last_komma(input: &mut String) {
+fn remove_last_comma(input: &mut String) {
         if input.chars().last().unwrap() == ',' {
                 input.pop();
         }
@@ -266,10 +263,10 @@ fn generate_empty_vec() -> Vec<u8> {
         return vec_to_return;
 }
 
-fn move_komma(init: Vec<u8>, input: Vec<u8>) -> (Vec<u8>, Vec<u8>) {
+fn move_comma(init: Vec<u8>, input: Vec<u8>) -> (Vec<u8>, Vec<u8>) {
         let mut datas: [Vec<u8>; 2] = [init.clone(), input.clone()];
 
-        let (length_init, length_input) = count_diff_komma(datas[0].clone(), datas[1].clone());
+        let (length_init, length_input) = count_diff_comma(datas[0].clone(), datas[1].clone());
         let length_to_extend: u8 = (length_init as i32 - length_input as i32).abs() as u8;
         let final_length: u8 = main_data::LENGTH as u8 - 1 - length_to_extend;
 
@@ -297,34 +294,34 @@ fn move_komma(init: Vec<u8>, input: Vec<u8>) -> (Vec<u8>, Vec<u8>) {
         return (datas[0].clone(), datas[1].clone());
 }
 
-fn count_diff_komma(n1: Vec<u8>, n2: Vec<u8>) -> (u8, u8) {
-        let mut buffer: [String; 2] = [String::new(), String::new()];
+fn count_diff_comma(n1: Vec<u8>, n2: Vec<u8>) -> (u8, u8) {
+        let mut buffer: [u8; 2] = [0 as u8; 2];
         let mut iterator: usize = 0;
-        let mut stop_convert_n1: bool = false;
-        let mut stop_convert_n2: bool = false;
+        let mut stop_count_n1: bool = false;
+        let mut stop_count_n2: bool = false;
         loop {
-                if !stop_convert_n1 {
+                if !stop_count_n1 {
                         if n1[iterator] == 10 {
-                                stop_convert_n1 = true;
+                                stop_count_n1 = true;
                         } else {
-                                buffer[0].push_str(&n1[iterator].to_string());
+                                buffer[0] += 1;
                         }
                 }
-                if !stop_convert_n2 {
+                if !stop_count_n2 {
                         if n2[iterator] == 10 {
-                                stop_convert_n2 = true;
+                                stop_count_n2 = true;
                         } else {
-                                buffer[1].push_str(&n2[iterator].to_string());
+                                buffer[1] += 1;
                         }
                 }
-                if stop_convert_n1 && stop_convert_n2 {
+                if stop_count_n1 && stop_count_n2 {
                         break;
                 }
                 
                 iterator += 1;
         }
 
-        return (buffer[0].len() as u8, buffer[1].len() as u8);
+        return (buffer[0] as u8, buffer[1] as u8);
 }
 
 fn normalise(input: f64) -> Vec<u8> {
@@ -359,6 +356,71 @@ fn main() {
         custom_float.add(1.0);
         custom_float.print();
 
-        custom_float.add(11.0);
+        custom_float.add(110.0);
         custom_float.print();
+}
+
+#[cfg(test)]
+mod tests {
+        use super::*;
+
+        #[test]
+        fn assert_remove_ending_zeros() {
+                let mut test: String = String::from("00100");
+                remove_ending_zeros(&mut test);
+
+                assert_eq!(test, "001");
+        }
+        #[test]
+        fn assert_remove_starting_zeros() {
+                let mut test: String = String::from("00100");
+                remove_starting_zeros(&mut test);
+
+                assert_eq!(test, "100");
+        }
+        #[test]
+        fn assert_remove_last_comma() {
+                let mut test: String = String::from("100,");
+                remove_last_comma(&mut test);
+
+                assert_eq!(test, "100");
+        }
+        #[test]
+        fn assert_count_diff_comma() {
+                let vec_1: Vec<u8> = [1,0,0,10,9,2].to_vec();
+                let vec_2: Vec<u8> = [5,6,10,8].to_vec();
+                let (out_1, out_2) = count_diff_comma(vec_1, vec_2);
+
+                assert_eq!(out_1, 3);
+                assert_eq!(out_2, 2);
+        }
+        #[test]
+        fn assert_move_comma() {
+                let mut vec_1: Vec<u8> = [1,6,8,2,10,5,7,1].to_vec();
+                let mut vec_2: Vec<u8> = [5,1,7,10,8,9].to_vec();
+                let mut out_1: Vec<u8> = [1,6,8,2,10,5,7,1].to_vec();
+                let mut out_2: Vec<u8> = [0,5,1,7,10,8,9].to_vec();
+                for _ in vec_1.len()..main_data::LENGTH {
+                        vec_1.push(0);
+                        out_1.push(0);
+                }
+                for _ in vec_2.len()..main_data::LENGTH {
+                        vec_2.push(0);
+                }
+                for _ in out_2.len()..main_data::LENGTH {
+                        out_2.push(0);
+                }
+
+                assert_eq!(move_comma(vec_1, vec_2), (out_1, out_2));
+        }
+        #[test]
+        fn assert_normalise() {
+                let input: f64 = 3782.1934;
+                let mut out: Vec<u8> = [3,7,8,2,10,1,9,3,4].to_vec();
+                for _ in out.len()..main_data::LENGTH {
+                        out.push(0);
+                }
+
+                assert_eq!(normalise(input), out);
+        }
 }
