@@ -353,8 +353,6 @@ fn main() {
         custom_float.substract(10.0);
         custom_float.print();
 
-        custom_float.add(1.0);
-        custom_float.print();
 
         custom_float.add(110.0);
         custom_float.print();
